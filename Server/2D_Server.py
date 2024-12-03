@@ -5,8 +5,7 @@ Starting Date: 12/2024
 """
 from agents import Car, Traffic_Light, Road, Obstacle, Destination
 from model import City
-from mesa.visualization import CanvasGrid
-from mesa.visualization import ModularServer
+from mesa.visualization import CanvasGrid, ModularServer, BarChartModule
 import random
 
 
@@ -52,6 +51,8 @@ def agent_portrayal(agent):
         portrayal["Layer"] = 0
         portrayal["w"] = 0.8
         portrayal["h"] = 0.8
+        portrayal["text"] = agent.carsArrived
+        portrayal["text_color"] = "black"
 
     return portrayal
 
@@ -62,17 +63,21 @@ with open(cityFile) as baseFile:
     width = len(lines[0])  # Correct width without '\n'
     height = len(lines)  # Number of lines gives the height
 
+
 model_params = {
     "width": width,
     "height": height,
     "city": cityFile
 }
 
+cars_arrived_chart = BarChartModule(
+    {"Label": "Arrived", "Color": "#00FF00"}
+)
 
-print(width, height)
 grid = CanvasGrid(agent_portrayal, width, height, width*20, height*20)
 
-server = ModularServer(City, [grid], "Traffic Base", model_params)
+server = ModularServer(
+    City, [grid], "Traffic Base", model_params)
 
 server.port = 8889  # The default
 server.launch()

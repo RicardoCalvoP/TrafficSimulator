@@ -7,8 +7,8 @@ Starting Date: 12/2024
 from mesa import Model, agent
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from mesa.datacollection import DataCollector
 from agents import Car, Obstacle, Traffic_Light, Road, Destination
-import numpy as np
 import random
 import json
 
@@ -33,6 +33,12 @@ class City(Model):
             (0, height-1),       # Left Top
             (width-1, height-1)  # Top Right
         ]
+
+        self.datacollector = DataCollector(
+            agent_reporters={
+                "Arrived": lambda a: a.carsArrived if isinstance(a, Destination) else 0
+            }
+        )
 
         dataDictionary = json.load(open('Cities/mapDictionary.json'))
 
@@ -109,6 +115,7 @@ class City(Model):
                         )
                         self.grid.place_agent(destination, pos)
                         self.destinations.append(pos)
+                        self.schedule.add(destination)
 
         for corner in self.carSpawns:
             destination = random.choice(self.destinations)
@@ -130,9 +137,10 @@ class City(Model):
 
     def step(self):
         self.schedule.step()
+        self.datacollector.collect(self)
         self.num_steps += 1
 
-        if self.num_steps % 1 == 0:
+        if self.num_steps % 5 == 0:
             free_corners = [corner for corner in self.carSpawns if not any(
                 isinstance(agent, Car) for agent in self.grid.get_cell_list_contents(corner))]
 

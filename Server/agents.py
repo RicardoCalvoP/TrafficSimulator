@@ -22,8 +22,9 @@ class Car(Agent):
         self.lastPosition = position
         self.position = position
         self.futurePosition = position
-        self.direction = "Left"
         self.destination = destination
+        self.direction = "Left"
+        self.status = "Driving"
         self.path = []
         self.patience = self.random.randint(5, 14)
         self.waitingTime = 0
@@ -130,6 +131,11 @@ class Car(Agent):
             self.path = self.calculate_path(self.position, self.destination)
 
         if self.pos == self.destination:
+            destination_cords = self.model.grid.get_cell_list_contents(
+                [self.destination])
+            for agents in destination_cords:
+                if isinstance(agents, Destination):
+                    agents.carsArrived += 1
             self.model.grid.remove_agent(self)
         if self.path:
             next_position = self.path[0]
@@ -138,16 +144,24 @@ class Car(Agent):
             for entity in entities_in_next_position:
                 if isinstance(entity, Traffic_Light):
                     if not entity.condition:  # Red light
+                        self.status = "RedLight"
                         return  # Stop and wait
 
             entities_in_position = self.model.grid.get_cell_list_contents([
                                                                           next_position])
-            if not any(isinstance(entity, Car) for entity in entities_in_position):  # Free cell
-                self.proceed()
+            if any(isinstance(entity, Car) for entity in entities_in_position):
+                if entity.status == "Driving":
+                    self.waitingTime += 1
+                    if self.waitingTime >= self.patience:
+                        self.proceed()
+                        self.status = "Driving"
+                else:
+                    self.status = "RedLight"
+                    return
             else:
-                self.waitingTime += 1
-                if self.waitingTime >= self.patience:
-                    self.proceed()
+                # Free cell
+                self.status = "Driving"
+                self.proceed()
 
 
 class Traffic_Light(Agent):
@@ -203,6 +217,7 @@ class Destination(Agent):
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.carsArrived = 0
 
     def step(self):
         pass
