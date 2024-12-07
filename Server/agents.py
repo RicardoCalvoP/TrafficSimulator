@@ -12,9 +12,9 @@ class Car(Agent):
     def __init__(self, unique_id, position, destination, model):
         super().__init__(unique_id, model)
 
-        r = random.randint(0, 255)
-        g = random.randint(0, 255)
-        b = random.randint(0, 255)
+        r = random.randint(150, 255)
+        g = random.randint(150, 255)
+        b = random.randint(150, 255)
 
         # Agents propreties
         self.id = unique_id
