@@ -7,7 +7,7 @@ Starting Date: 12/2024
 from mesa import Model, agent
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
-from mesa.datacollection import DataCollector
+from mesa import DataCollector
 from agents import Car, Obstacle, Traffic_Light, Road, Destination
 import random
 import json
@@ -26,13 +26,13 @@ class City(Model):
         self.destinations = []
         self.grid = MultiGrid(width, height, torus=False)
         self.schedule = RandomActivation(self)
-        self.running = True
         self.carSpawns = [
             (0, 0),              # Bottom Left
             (width - 1, 0),      # Bottom Right
             (0, height-1),       # Left Top
             (width-1, height-1)  # Top Right
         ]
+        self.running = True
 
         self.datacollector = DataCollector(
             agent_reporters={
@@ -128,6 +128,8 @@ class City(Model):
             self.grid.place_agent(car, corner)
             self.schedule.add(car)
             self.num_cars += 1
+
+        self.datacollector.collect(self)
 
     def get_direction(self, agents, valid_directions, default):
         for agent in agents:
